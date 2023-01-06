@@ -1,0 +1,10 @@
+<launch>
+
+	<arg name = "drone_name" default="Matrice_100"/>
+	<arg name = "parent_name" default="base_link"/>
+	<arg name = "chassis_mesh" default="package://model_description/meshes/Matrice_100.dae"/>
+	<arg name = "propeller_cw_mesh" default="package://model_description/meshes/dji_13455_prop_cw.dae"/>
+	<arg name = "propeller_ccw_mesh" default="package://model_description/meshes/dji_13455_prop_ccw.dae"/>
+
+	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find model_description)/urdf/drone/drone.urdf.xacro' parent_link:=$(arg parent_name) drone_link:=$(arg drone_name) chassis_mesh:=$(arg chassis_mesh) propeller_cw_mesh:=$(arg propeller_cw_mesh) propeller_ccw_mesh:=$(arg propeller_ccw_mesh)"/>
+</launch>

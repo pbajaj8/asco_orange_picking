@@ -1,0 +1,308 @@
+<robot name="drone" xmlns:xacro="http://www.ros.org/wiki/xacro">
+	
+	<!-- Properties  -->
+
+	<!-- mass -->
+	<xacro:property name="chassis_mass" value="1.0"/>
+	<xacro:property name="propeller_mass" value="0.05"/>
+	<!-- drone inertia -->
+	<xacro:property name="d_ixx" value="1.0"/>
+	<xacro:property name="d_iyy" value="1.0"/>
+	<xacro:property name="d_izz" value="1.0"/>
+	<xacro:property name="d_ixy" value="0.0"/>
+	<xacro:property name="d_ixz" value="0.0"/>
+	<xacro:property name="d_iyz" value="0.0"/>
+	<!-- propeller inertia -->
+	<xacro:property name="p_ixx" value="1.0"/>
+	<xacro:property name="p_iyy" value="1.0"/>
+	<xacro:property name="p_izz" value="1.0"/>
+	<xacro:property name="p_ixy" value="0.0"/>
+	<xacro:property name="p_ixz" value="0.0"/>
+	<xacro:property name="p_iyz" value="0.0"/>
+	<!-- physical -->
+	<xacro:property name="d_width" value="0.458"/>
+	<!-- base to propeller transformation -->
+	<xacro:property name="base_propeller_x" value="${d_width/2}"/>
+	<xacro:property name="base_propeller_y" value="${d_width/2}"/>
+	<xacro:property name="base_propeller_z" value="0.07"/>
+	<!-- dynamic property -->
+	<xacro:property name="propeller_max_speed" value="5"/>
+	<xacro:property name="propeller_max_effort" value="5"/>
+	<!-- Camera Position relative to base -->
+	<xacro:property name="origin_x" value="0.22"/>
+	<xacro:property name="origin_y" value="0.02"/>
+	<xacro:property name="origin_z" value="-0.01"/>
+	<xacro:property name="origin_roll" value="0"/>
+	<xacro:property name="origin_pitch" value="0"/>
+	<xacro:property name="origin_yaw" value="0"/>
+
+	<!-- /Properties  -->
+
+
+	<!-- Arguments -->
+
+	<xacro:arg name="chassis_mesh" default="package://model_description/meshes/Matrice_100.dae"/>
+	<xacro:arg name="propeller_cw_mesh" default="package://model_description/meshes/dji_13455_prop_cw.dae"/>
+	<xacro:arg name="propeller_ccw_mesh" default="package://model_description/meshes/dji_13455_prop_ccw.dae"/>
+	<xacro:arg name="parent_link" default="base"/>
+	<xacro:arg name="drone_link" default="drone"/>
+
+	<!-- /Arguments -->
+
+
+
+	<!-- Include Micro files -->
+
+	<xacro:include filename="$(find model_description)/urdf/drone/drone_chassis.xacro"/>
+	<xacro:include filename="$(find model_description)/urdf/drone/propeller_cw.xacro"/>	
+	<xacro:include filename="$(find model_description)/urdf/drone/propeller_ccw.xacro"/>
+	<xacro:include filename="$(find model_description)/urdf/camera/d435i.xacro"/>
+	<xacro:include filename="$(find model_description)/urdf/camera/d435i.gazebo"/>
+
+	<!-- /Include Micro files -->
+
+
+	<!-- Links -->
+
+	<link name="$(arg parent_link)"/>
+
+	<xacro:drone_chassis mesh_file_add="$(arg chassis_mesh)" parent_link="$(arg parent_link)" drone_link="$(arg drone_link)" mass="${chassis_mass}" ixx="${d_ixx}" iyy="${d_iyy}" izz="${d_izz}" ixy="${d_ixy}" ixz="${d_ixz}" iyz="${d_iyz}"/>
+
+	<!-- /Links -->
+
+	<!-- Links -->
+
+	<xacro:propeller_cw mesh_file_add="$(arg propeller_ccw_mesh)" parent_name="$(arg parent_link)" link_name="FRP" joint_name="FRP_joint" mass="${propeller_mass}" ixx="${p_ixx}" iyy="${p_iyy}" izz="${p_izz}" ixy="${p_ixy}" ixz="${p_ixz}" iyz="${p_iyz}" px="${base_propeller_x}" py="${-base_propeller_y}" pz="${base_propeller_z}"/>
+
+	<xacro:propeller_cw mesh_file_add="$(arg propeller_cw_mesh)" parent_name="$(arg parent_link)" link_name="FLP" joint_name="FLP_joint" mass="${propeller_mass}" ixx="${p_ixx}" iyy="${p_iyy}" izz="${p_izz}" ixy="${p_ixy}" ixz="${p_ixz}" iyz="${p_iyz}" px="${base_propeller_x}" py="${base_propeller_y}" pz="${base_propeller_z}"/>
+
+
+	<xacro:propeller_cw mesh_file_add="$(arg propeller_cw_mesh)" parent_name="$(arg parent_link)" link_name="BRP" joint_name="BRP_joint" mass="${propeller_mass}" ixx="${p_ixx}" iyy="${p_iyy}" izz="${p_izz}" ixy="${p_ixy}" ixz="${p_ixz}" iyz="${p_iyz}" px="${-base_propeller_x}" py="${-base_propeller_y}" pz="${base_propeller_z}"/>
+
+	<xacro:propeller_cw mesh_file_add="$(arg propeller_ccw_mesh)" parent_name="$(arg parent_link)" link_name="BLP" joint_name="BLP_joint" mass="${propeller_mass}" ixx="${p_ixx}" iyy="${p_iyy}" izz="${p_izz}" ixy="${p_ixy}" ixz="${p_ixz}" iyz="${p_iyz}" px="${-base_propeller_x}" py="${base_propeller_y}" pz="${base_propeller_z}"/>
+
+	<xacro:camera_d435i parent_name="$(arg parent_link)" origin_x="${origin_x}" origin_y="${origin_y}" origin_z="${origin_z}" origin_roll="${origin_roll}" origin_pitch="${origin_pitch}" origin_yaw="${origin_yaw}"/>
+
+	<!-- /Links -->
+
+
+	<!-- Plugins -->
+
+	<gazebo>
+
+	    <!-- <plugin name='gps_plugin' filename='libgazebo_gps_plugin.so'>
+	   		<robotNamespace/>
+    		<gpsNoise>1</gpsNoise>
+	    </plugin> -->
+
+	    <plugin name='rosbag' filename='libgazebo_multirotor_base_plugin.so'>
+     	 	<robotNamespace></robotNamespace>
+      		<linkName>$(arg parent_link)</linkName>
+    		<rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+	    </plugin>
+
+
+		<!-- Front Right Motor Propeller -->
+		<plugin name='FRP_plugin' filename='libgazebo_motor_model.so'>
+			<robotNamespace/>
+			<jointName>FRP_joint</jointName>
+			<linkName>FRP</linkName>
+			<turningDirection>ccw</turningDirection>
+			<timeConstantUp>0.0125</timeConstantUp>
+			<timeConstantDown>0.025</timeConstantDown>
+			<maxRotVelocity>1100</maxRotVelocity>
+			<motorConstant>5.84e-06</motorConstant>
+			<momentConstant>0.06</momentConstant>
+			<commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+			<motorNumber>2</motorNumber>
+			<rotorDragCoefficient>0.000175</rotorDragCoefficient>
+			<rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+			<motorSpeedPubTopic>/motor_speed/2</motorSpeedPubTopic>
+			<rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+		</plugin>
+		<!-- Back Left Motor Propeller -->
+		<plugin name='BLP_plugin' filename='libgazebo_motor_model.so'>
+	      	<robotNamespace/>
+	      	<jointName>BLP_joint</jointName>
+	      	<linkName>BLP</linkName>
+	      	<turningDirection>ccw</turningDirection>
+	      	<timeConstantUp>0.0125</timeConstantUp>
+	      	<timeConstantDown>0.025</timeConstantDown>
+	      	<maxRotVelocity>1100</maxRotVelocity>
+	      	<motorConstant>5.84e-06</motorConstant>
+	      	<momentConstant>0.06</momentConstant>
+      		<commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+	      	<motorNumber>0</motorNumber>
+	      	<rotorDragCoefficient>0.000175</rotorDragCoefficient>
+	      	<rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+	      	<motorSpeedPubTopic>/motor_speed/0</motorSpeedPubTopic>
+	      	<rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+	    </plugin>
+	    <!-- Front Left Motor Plugin -->
+	    <plugin name='FLP_plugin' filename='libgazebo_motor_model.so'>
+	      	<robotNamespace/>
+	      	<jointName>FLP_joint</jointName>
+	      	<linkName>FLP</linkName>
+	      	<turningDirection>cw</turningDirection>
+	      	<timeConstantUp>0.0125</timeConstantUp>
+	      	<timeConstantDown>0.025</timeConstantDown>
+	      	<maxRotVelocity>1100</maxRotVelocity>
+	      	<motorConstant>5.84e-06</motorConstant>
+	      	<momentConstant>0.06</momentConstant>
+	      	<commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+	      	<motorNumber>3</motorNumber>
+	      	<rotorDragCoefficient>0.000175</rotorDragCoefficient>
+	      	<rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+	      	<motorSpeedPubTopic>/motor_speed/3</motorSpeedPubTopic>
+	      	<rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+	    </plugin>
+	    <!-- Back Left Motor Plugin -->
+	    <plugin name='BRP_plugin' filename='libgazebo_motor_model.so'>
+	      	<robotNamespace/>
+	      	<jointName>BRP_joint</jointName>
+	      	<linkName>BRP</linkName>
+	      	<turningDirection>cw</turningDirection>
+	      	<timeConstantUp>0.0125</timeConstantUp>
+	      	<timeConstantDown>0.025</timeConstantDown>
+	      	<maxRotVelocity>1100</maxRotVelocity>
+	      	<motorConstant>5.84e-06</motorConstant>
+	      	<momentConstant>0.06</momentConstant>
+	      	<commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
+	      	<motorNumber>1</motorNumber>
+	      	<rotorDragCoefficient>0.000175</rotorDragCoefficient>
+	      	<rollingMomentCoefficient>1e-06</rollingMomentCoefficient>
+	      	<motorSpeedPubTopic>/motor_speed/1</motorSpeedPubTopic>
+	      	<rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+	    </plugin>
+
+	    <plugin name='groundtruth_plugin' filename='libgazebo_groundtruth_plugin.so'>
+      		<robotNamespace/>
+    	</plugin>
+
+    	<plugin name='magnetometer_plugin' filename='libgazebo_magnetometer_plugin.so'>
+	      	<robotNamespace/>
+	      	<pubRate>100</pubRate>
+	      	<noiseDensity>0.0004</noiseDensity>
+	      	<randomWalk>6.4e-06</randomWalk>
+	      	<biasCorrelationTime>600</biasCorrelationTime>
+	      	<magTopic>/mag</magTopic>
+	    </plugin>
+
+	    <plugin name='barometer_plugin' filename='libgazebo_barometer_plugin.so'>
+      		<robotNamespace/>
+      		<pubRate>50</pubRate>
+      		<baroTopic>/baro</baroTopic>
+      		<baroDriftPaPerSec>0</baroDriftPaPerSec>
+    	</plugin>
+
+    	<plugin name='mavlink_interface' filename='libgazebo_mavlink_interface.so'>
+    		<robotNamespace/>
+    		<imuSubTopic>/imu</imuSubTopic>
+    		<magSubTopic>/mag</magSubTopic>
+    		<baroSubTopic>/baro</baroSubTopic>
+    		<mavlink_addr>INADDR_ANY</mavlink_addr>
+      		<mavlink_tcp_port>{{ mavlink_tcp_port }}</mavlink_tcp_port>
+      		<mavlink_udp_port>{{ mavlink_udp_port }}</mavlink_udp_port>
+      		<serialEnabled>{{ serial_enabled }}</serialEnabled>
+      		<serialDevice>{{ serial_device }}</serialDevice>
+      		<baudRate>{{ serial_baudrate }}</baudRate>
+      		<qgc_addr>INADDR_ANY</qgc_addr>
+      		<qgc_udp_port>14550</qgc_udp_port>
+      		<sdk_addr>INADDR_ANY</sdk_addr>
+      		<sdk_udp_port>14540</sdk_udp_port>
+      		<hil_mode>{{ hil_mode }}</hil_mode>
+      		<hil_state_level>0</hil_state_level>
+      		<send_vision_estimation>0</send_vision_estimation>
+      		<send_odometry>1</send_odometry>
+      		<enable_lockstep>1</enable_lockstep>
+      		<use_tcp>1</use_tcp>
+      		<motorSpeedCommandPubTopic>/gazebo/command/motor_speed</motorSpeedCommandPubTopic>
+      		<control_channels>
+      			<channel name="rotor1">
+      				<input_index>0</input_index>
+		          	<input_offset>0</input_offset>
+		          	<input_scaling>1000</input_scaling>
+		          	<zero_position_disarmed>0</zero_position_disarmed>
+		          	<zero_position_armed>100</zero_position_armed>
+		          	<joint_control_type>velocity</joint_control_type>
+      			</channel>
+      			<channel name="rotor2">
+      				<input_index>1</input_index>
+		          	<input_offset>0</input_offset>
+		          	<input_scaling>1000</input_scaling>
+		          	<zero_position_disarmed>0</zero_position_disarmed>
+		          	<zero_position_armed>100</zero_position_armed>
+		          	<joint_control_type>velocity</joint_control_type>
+      			</channel>
+      			<channel name="rotor3">
+      				<input_index>2</input_index>
+		          	<input_offset>0</input_offset>
+		          	<input_scaling>1000</input_scaling>
+		          	<zero_position_disarmed>0</zero_position_disarmed>
+		          	<zero_position_armed>100</zero_position_armed>
+		          	<joint_control_type>velocity</joint_control_type>
+      			</channel>
+      			<channel name="rotor4">
+      				<input_index>3</input_index>
+		          	<input_offset>0</input_offset>
+		          	<input_scaling>1000</input_scaling>
+		          	<zero_position_disarmed>0</zero_position_disarmed>
+		          	<zero_position_armed>100</zero_position_armed>
+		          	<joint_control_type>velocity</joint_control_type>
+      			</channel>
+      		</control_channels>
+    	</plugin>
+
+    	<plugin name='rotors_gazebo_imu_plugin' filename='libgazebo_imu_plugin.so'>
+	      	<robotNamespace/>
+	      	<linkName>$(arg parent_link)</linkName>
+	      	<imuTopic>/imu</imuTopic>
+	      	<gyroscopeNoiseDensity>0.00018665</gyroscopeNoiseDensity>
+	      	<gyroscopeRandomWalk>3.8785e-05</gyroscopeRandomWalk>
+	      	<gyroscopeBiasCorrelationTime>1000.0</gyroscopeBiasCorrelationTime>
+	      	<gyroscopeTurnOnBiasSigma>0.0087</gyroscopeTurnOnBiasSigma>
+	      	<accelerometerNoiseDensity>0.00186</accelerometerNoiseDensity>
+	      	<accelerometerRandomWalk>0.006</accelerometerRandomWalk>
+	      	<accelerometerBiasCorrelationTime>300.0</accelerometerBiasCorrelationTime>
+	      	<accelerometerTurnOnBiasSigma>0.196</accelerometerTurnOnBiasSigma>
+	    </plugin>
+
+	    <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+      		<alwaysOn>true</alwaysOn>
+      		<updateRate>50.0</updateRate>
+      		<bodyName>$(arg parent_link)</bodyName>
+      		<topicName>/matrix_100/odom</topicName>
+      		<gaussianNoise>0.01</gaussianNoise>
+      		<frameName>world</frameName>
+      		<xyzOffsets>0 0 0</xyzOffsets>
+    		 <rpyOffsets>0 0 0</rpyOffsets>
+	    </plugin>
+
+
+
+	</gazebo>
+
+	<!-- /Plugins -->
+
+	
+
+	<!-- D435i plugin -->
+
+	<xacro:simulation_d435 camera_name="d435i" reference_link="camera_link" topics_ns="d435i_plugin" depth_optical_frame="camera_depth_optical_frame" color_optical_frame="camera_color_optical_frame" infrared1_optical_frame="camera_infra1_optical_frame" infrared2_optical_frame="camera_infra2_optical_frame"/>
+
+	<!-- /D435i plugin -->
+
+
+	<!-- gripper -->
+
+	<xacro:include filename="$(find gripper_v3)/urdf/gripper_v3.urdf"/>
+
+	<joint name="base_link_joint" type="fixed">
+		<origin xyz="0.74 0.02 -0.08" rpy="-1.57 0 -1.57"/>
+		<parent link="$(arg parent_link)"/>
+		<child link="base_link"/>
+	</joint>
+
+	<!-- /gripper -->
+
+</robot>

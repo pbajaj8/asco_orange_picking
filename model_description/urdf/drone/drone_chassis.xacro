@@ -1,0 +1,34 @@
+<robot name="drone_chassis" xmlns:xacro="http://www.ros.org/wiki/xacro">
+	<xacro:macro name="drone_chassis" params="mesh_file_add parent_link drone_link mass ixx iyy izz ixy ixz iyz">
+	
+		<link name="${drone_link}">
+			<visual>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+				<geometry>
+					<mesh filename="${mesh_file_add}"/>
+				</geometry>
+			</visual>
+			<collision>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+				<geometry>
+					<mesh filename="${mesh_file_add}"/>
+				</geometry>
+			</collision>
+			<inertial>
+				<mass value="${mass}"/>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
+				<inertia
+		        	ixx="${ixx}" ixy="${ixy}" ixz="${ixz}"
+		        	iyy="${iyy}" iyz="${iyz}"
+		        	izz="${izz}"
+		    	/>
+			</inertial>
+		</link>
+
+		<joint name="joint_0" type="fixed">
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<parent link="${parent_link}"/>
+			<child link="${drone_link}"/>
+		</joint> 
+	</xacro:macro>
+</robot>
